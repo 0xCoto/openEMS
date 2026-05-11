@@ -459,7 +459,15 @@ class WaveguidePort(Port):
         
     def CalcPort(self, sim_path, freq, ref_impedance=None, ref_plane_shift=None, signal_type='pulse', ZL = -1):
         k = 2.0*np.pi*freq/C0*self.ref_index
-        self.beta = np.sqrt(k**2 - self.kc**2)
+        # Cast to complex so sqrt returns j*alpha for f < f_cutoff (k<kc)
+        # rather than NaN. The analytic mode impedance Zw = k*Z0/beta is then
+        # purely imaginary below cutoff (capacitive evanescent), which is the
+        # correct value for the V/I -> wave decomposition in the parent's
+        # CalcPort. Without the cast, np.sqrt on a real-typed negative
+        # argument returns NaN, making Zw NaN, and the downstream skip-on-NaN
+        # branch in compute/analysis/sparameters.py drops the S-parameter
+        # array entirely (so prior-run stale values stick).
+        self.beta = np.sqrt(np.asarray(k**2 - self.kc**2, dtype=complex))
         if ZL <= 0:
             self.ZL = k * Z0 / self.beta    #analytic waveguide impedance
         else:

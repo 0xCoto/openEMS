@@ -8,6 +8,7 @@ set(SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_dispersive.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_lorentzmaterial.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_conductingsheet.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_lossymetal.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_dispersive.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_lorentzmaterial.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_cylindermultigrid.cpp
@@ -28,6 +29,12 @@ set(SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_lumpedRLC.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_absorbing_bc.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_absorbing_bc.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_modeabsorb.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_modeabsorb.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_modalfdtd.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_modalfdtd.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/operator_ext_waveguide_absorber.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/engine_ext_waveguide_absorber.cpp
   PARENT_SCOPE
 )
 
