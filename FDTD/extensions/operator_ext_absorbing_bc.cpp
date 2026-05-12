@@ -75,7 +75,14 @@ void Operator_Ext_Absorbing_BC::Initialize()
 	m_pmlDepth         = 4;
 	m_pmlSigmaMax      = 0.0;
 	m_pmlAlphaMax      = 0.0;
-	m_pmlKappaMax      = 5.0;
+	// Bérenger 2002 ("Application of the CFS PML to the Absorption of
+	// Evanescent Waves in Waveguides") assumes κ=1 throughout the
+	// derivation of α_opt = nπcε₀/a.  κ>1 over-stretches the coordinate
+	// and damps the propagating component before it can be drained by σ,
+	// hurting the evanescent absorption.  Match the paper.
+	// Override via CPMLKappaMax envelope (or future setter) if you want
+	// to revisit the Wang-2022 / Roden-Gedney recommendation of κ=4–5.
+	m_pmlKappaMax      = 1.0;
 	m_pmlProfileOrder  = 3;
 	m_pmlStepSign      = +1;
 }
