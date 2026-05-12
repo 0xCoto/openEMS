@@ -270,6 +270,14 @@ template <typename EngType>
 void Engine_Ext_ModeAbsorb::Apply2VoltagesImpl(EngType* eng, int threadID)
 {
 	if (m_Eng == NULL || threadID != 0) return;
+	// Round-9 passive-stamp mode (CST architecture): the port plane only
+	// probes (via openEMS Port U/I probes) and does NOT actively absorb.
+	// All absorption is done by the outer boundary.  Skip modal CPML
+	// aux-field updates entirely.
+	static const bool s_passive_stamp =
+		(std::getenv("MODE_ABSORB_PASSIVE") != nullptr
+		 && std::string(std::getenv("MODE_ABSORB_PASSIVE")) == "1");
+	if (s_passive_stamp) return;
 	if (!m_CPML_Active) return;
 
 	unsigned int pos[3] = {0, 0, 0};
@@ -421,6 +429,36 @@ void Engine_Ext_ModeAbsorb::Apply2CurrentImpl(EngType* eng, int threadID)
 		}
 		// Spatial average: (Hmm_primary + Hmm_alt)/2 = H_at_E_plane
 		Hmm = 0.5 * (Hmm + Hmm_alt);
+	}
+
+	// =========================================================================
+	// Round-9 passive-stamp mode (CST architecture, 2026-05-13)
+	// In CST, the port plane does NO active absorption — it only injects the
+	// source (via the standard openEMS WaveGuidePort excitation that runs
+	// before this extension) and probes the modal projection (via the openEMS
+	// p_type=10/11 probes that are independent of this extension).  Setting
+	// MODE_ABSORB_PASSIVE=1 disables every active modification of E/H made by
+	// this extension (V/I matched-modal-source, Luo-Chen 1-D KG line,
+	// state-space recursion, modal damping), leaving the entire absorption
+	// budget to the outer boundary BC.  This is the architecture the CST LLM
+	// Round 9 Frida trace established as the truth-of-record for CST.
+	// =========================================================================
+	{
+		static const bool s_passive_stamp =
+			(std::getenv("MODE_ABSORB_PASSIVE") != nullptr
+			 && std::string(std::getenv("MODE_ABSORB_PASSIVE")) == "1");
+		if (s_passive_stamp)
+		{
+			if (print_step)
+			{
+				std::cerr << "[MA-PASSIVE] ts=" << ts
+				          << " Emm=" << Emm
+				          << " Hmm=" << Hmm
+				          << " max_V@Eplane=" << max_V_at_E_plane
+				          << std::endl;
+			}
+			return;
+		}
 	}
 
 	// =========================================================================
