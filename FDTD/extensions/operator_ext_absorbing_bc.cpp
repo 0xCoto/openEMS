@@ -164,9 +164,23 @@ bool Operator_Ext_Absorbing_BC::SetInitParams(CSPrimitives* prim, CSPropAbsorbin
 		m_pmlAlphaMax     = abc_prop->GetCPMLAlphaMax();
 		m_pmlProfileOrder = std::max<unsigned int>(1, abc_prop->GetCPMLProfileOrder());
 
-		// PML extends *opposite* to the wave-side. The Mur stencil reads the
-		// interior at sheet+sign(+1), so the PML grows in -sign direction.
-		m_pmlStepSign = m_normalSignPositive ? -1 : +1;
+		// CPML-strip geometry convention (2026-05-13): the user's "sheet"
+		// sits at the INNER edge of the strip and the strip extends
+		// OUTWARD toward the simulation boundary, terminating at the PEC
+		// backstop.  m_normalSignPositive describes the outward normal of
+		// the absorbing face, so the strip grows in that direction.
+		//
+		// This matches the σ profile baked below: k=0 at the sheet
+		// (zeta≈0 → σ≈0, α≈α_max), k=D-1 at the outer cell (zeta≈1 →
+		// σ≈σ_max, α≈0).  A wave entering the strip sees σ ramp up from 0
+		// at the sheet to σ_max at the PEC, which is canonical
+		// Roden-Gedney 2000 / Bérenger 2002.
+		//
+		// Prior to this fix the sign was inverted (NSP? -1 : +1), causing
+		// the strip cells to be assigned INTO the simulation interior with
+		// σ_max landing on the cell the wave hits first — a ~60-80 dB
+		// reflection penalty vs Bérenger's predicted bound.
+		m_pmlStepSign = m_normalSignPositive ? +1 : -1;
 	}
 
 	prim->SetPrimitiveUsed(true);
